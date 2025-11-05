@@ -1,14 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+memStat.dataset._last = mem;
+animateValue(netStat, parseFloat(netStat.dataset._last||0), net, 700);
+netStat.dataset._last = net;
 
-<head>
-    <title>Test Page</title>
-</head>
 
-<body>
-    <h1>Test</h1>
-    <h1>Test</h1>
-    <h1>Test</h1>
-</body>
+// update sparklines
+function pushSpark(chart,val){
+chart.data.datasets[0].data.push(val);
+if(chart.data.datasets[0].data.length>30) chart.data.datasets[0].data.shift();
+chart.update('none');
+}
+pushSpark(sparkCpu, cpu);
+pushSpark(sparkMem, mem);
+pushSpark(sparkNet, net);
 
-</html>
+
+// update main chart
+lineChart.data.datasets[0].data.push(rand(20,150));
+lineChart.data.datasets[1].data.push(rand(10,120));
+if(lineChart.data.datasets[0].data.length>60){
+lineChart.data.datasets[0].data.shift();
+lineChart.data.datasets[1].data.shift();
+}
+lineChart.update('none');
+
+
+// random events
+if(Math.random()<0.28){ const ev=['New device connected','High CPU spike','Packet loss detected','Alert: disk almost
+    full'][randInt(0,3)]; pushEvent(ev, ev.startsWith('Alert')|| ev.includes('spike') ? 'alert' : 'info' ); } // alerts
+    count const alerts=randInt(0,4); animateValue(alertStat, parseFloat(alertStat.dataset._last||0), alerts, 600);
+    alertStat.dataset._last=alerts; // refresh tables sometimes if(Math.random()<0.2) seedProcesses();
+    if(Math.random()<0.15) seedDevices(); } // start simulation simulateUpdate(); setInterval(simulateUpdate, 2500); //
+    Refresh button (manual update) document.getElementById('refreshBtn').addEventListener('click', ()=>{
+    pushEvent('Manual refresh triggered', 'info');
+    simulateUpdate();
+    });
+
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('change', (e)=>{
+    document.body.setAttribute('data-theme', e.target.checked ? 'light' : 'dark');
+    });
+
+
+    // Mock WebSocket (for demonstration) - you can replace with real WS url
+    function createMockWebSocket(){
+    const ws = {onmessage:null,send:()=>{},close:()=>{}};
+    // every now and then push a message
+    setInterval(()=>{
+    const msg = JSON.stringify({type:'metrics',cpu:rand(5,92),mem:rand(2,32)});
+    if(ws.onmessage) ws.onmessage({data:msg});
+    }, 4500);
+    return ws;
+    }
+
+
+    const ws = createMockWebSocket();
+    ws.onmessage = (e)=>{
+    try{
+    const d = JSON.parse(e.data);
+    if(d.cpu) pushEvent(`WS update — CPU ${d.cpu.toFixed(1)}%`, 'info');
+    }catch(err){/* ignore */}
+    }
+
+
+    // Accessibility: keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+    if(e.key==='r' && (e.ctrlKey||e.metaKey)){
+    e.preventDefault(); document.getElementById('refreshBtn').click();
+    }
+    });
+
+
+    </script>
+    </body>
+
+    </html>
